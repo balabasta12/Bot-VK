@@ -59,13 +59,13 @@ def serch_photo(user_id):
                                      'access_token': vk_user
                                      ,'owner_id': user_id
                                      ,'album_id': 'profile'
-                                     ,'count': 3
+                                     ,'count': 5
                                      ,'extended': 1
                                  })
     except:  # На какую ошибку указывать?
         return 'Нет доступа к фото'
 
-    for i in range(3):
+    for i in range(5):
         try:
             list_photo.append(
                 [serch_photo['items'][i]['likes']['count'],
@@ -73,7 +73,17 @@ def serch_photo(user_id):
         except IndexError:
             list_photo.append(['Нет фото'])
     return list_photo
-#print(serch_photo(701979327))
+# print(serch_photo())
+
+def max_likes(user_photos):
+    photo = []
+    for element in user_photos:
+        if element != 'Нет фото' and user_photos != 'Нет доступа к фото':
+            photo.append(element)
+    return sorted(photo)
+# a = max_likes(serch_photo())
+# print(a)
+
 
 
 
