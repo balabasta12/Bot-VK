@@ -2,17 +2,23 @@ from random import randrange
 import Tokken
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 token = Tokken.token
 token_user = Tokken.token_user
 #
-# vk = vk_api.VkApi(token=token)
-vk = vk_api.VkApi(token=token_user)
+vk = vk_api.VkApi(token=token)
+# vk = vk_api.VkApi(token=token_user)
 longpoll = VkLongPoll(vk)
 
-#
-# def write_msg(user_id, message):
-#     vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7)})
+
+#  Кнопки
+# keyboard = VkKeyboard(one_time=True)
+# keyboard.add_button("Ведите пол", color=VkKeyboardColor.POSITIVE)
+# keyboard.add_button("Введиет город: ", color=VkKeyboardColor.POSITIVE)
+# keyboard.add_button("Введите возраст от: ", color=VkKeyboardColor.POSITIVE)
+# keyboard.add_button("Введите возраст до: ", color=VkKeyboardColor.POSITIVE)
+
 
 # Поиск людей
 def serch_users(sex, city, age_from, age_to):
@@ -35,16 +41,15 @@ def serch_users(sex, city, age_from, age_to):
         people = [
             element['first_name']
             ,element['last_name']
-            ,url_vk_id + str(element['id'])
+            ,url_vk_id + str(element["id"])
             ,element['id']
         ]
         list_of_peoples.append(people)
+
     return list_of_peoples
 # a = serch_users(2, 'Москва', 20, 21)
-# b = []
-# for i in a:
-#     b.append(i[3])
-#
+# print(a)
+
 # print(b)
 
 
@@ -85,19 +90,29 @@ def max_likes(user_photos):
 # print(a)
 
 
+def write_msg(user_id, message):
+    vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7)})  # 'keyboard': keyboard.get_keyboard()
 
+for event in longpoll.listen():
+    if event.type == VkEventType.MESSAGE_NEW:
 
-# for event in longpoll.listen():
-#     if event.type == VkEventType.MESSAGE_NEW:
-#
-#         if event.to_me:
-#             request = event.text.lower()
-#             user_id = event.user_id
-#
-#             if request == "привет":
-#                 write_msg(user_id, f"Хай, {user_id}")
-#             elif request == "пока":
-#                 write_msg(user_id, "Пока((")
-#
-#             else:
-#                 write_msg(user_id, "Не поняла вашего ответа...")
+        if event.to_me:
+            request = event.text.lower()
+            user_id = event.user_id
+
+            if request == "привет":
+                write_msg(user_id, f"Хай, {user_id}")
+            elif request == "пока":
+                write_msg(user_id, "Пока((")
+
+            elif request == "1":
+                gender = input("Введите пол 1 - ж, 2- м: ")
+                city = input("Введиет город: ")
+                age_from = input("Введите возраст от: ")
+                age_to = input("Введите возраст до: ")
+                serch_users = serch_users(gender, city, age_from, age_to)
+                for i in serch_users:
+                    write_msg(user_id, f"{i}\n")
+
+            else:
+                write_msg(user_id, "Не поняла вашего ответа...")
