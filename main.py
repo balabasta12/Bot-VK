@@ -4,11 +4,10 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
+
 token = Tokken.token
 token_user = Tokken.token_user
-#
 vk = vk_api.VkApi(token=token)
-# vk = vk_api.VkApi(token=token_user)
 longpoll = VkLongPoll(vk)
 
 
@@ -26,31 +25,28 @@ def serch_users(sex, city, age_from, age_to):
     url_vk_id = 'https://vk.com/id'
     vk_user = vk_api.VkApi(token=token_user)
     serch_parameters = vk_user.method('users.search',  # Параметры поиска
-                         {
-                             'sort': 1
-                             ,'hometown': city
-                             ,'sex': sex
-                             ,'age_from': age_from
-                             ,'age_to': age_to
-                             ,'status': 1
-                             ,'count': 20
+                                      {
+                                          'sort': 0
+                                          , 'hometown': city
+                                          , 'sex': sex
+                                          , 'age_from': age_from
+                                          , 'age_to': age_to
+                                          , 'status': 6
+                                          , 'count': 5
+                                          , 'has_photo': 1
 
-                         })
+                                      })
 
     for element in serch_parameters['items']:
         people = [
             element['first_name']
-            ,element['last_name']
-            ,url_vk_id + str(element["id"])
-            ,element['id']
+            , element['last_name']
+            , url_vk_id + str(element["id"])
+            , element['id']
         ]
         list_of_peoples.append(people)
 
     return list_of_peoples
-# a = serch_users(2, 'Москва', 20, 21)
-# print(a)
-
-# print(b)
 
 
 # Поиск фото
@@ -60,13 +56,16 @@ def serch_photo(user_id):
 
     try:
         serch_photo = vk_user.method('photos.get',
-                                 {
-                                     'access_token': vk_user
-                                     ,'owner_id': user_id
-                                     ,'album_id': 'profile'
-                                     ,'count': 5
-                                     ,'extended': 1
-                                 })
+                                     {
+                                         'access_token': vk_user
+                                         , 'owner_id': user_id
+                                         , 'album_id': 'profile'
+                                         , 'count': 5
+                                         , 'extended': 1
+                                         , 'photo_sizes': 1
+
+
+                                     })
     except:  # На какую ошибку указывать?
         return 'Нет доступа к фото'
 
@@ -78,41 +77,76 @@ def serch_photo(user_id):
         except IndexError:
             list_photo.append(['Нет фото'])
     return list_photo
-# print(serch_photo())
 
-def max_likes(user_photos):
+
+def sort_likes(user_photos):
     photo = []
     for element in user_photos:
         if element != 'Нет фото' and user_photos != 'Нет доступа к фото':
             photo.append(element)
     return sorted(photo)
-# a = max_likes(serch_photo())
-# print(a)
 
 
 def write_msg(user_id, message):
-    vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7)})  # 'keyboard': keyboard.get_keyboard()
+    vk.method('messages.send', {'user_id': user_id, 'message': message,
+                                'random_id': randrange(10 ** 7)})  # 'keyboard': keyboard.get_keyboard()
+
+
+def msg():
+    params = []
+    for this_event in longpoll.listen():
+        if this_event.type == VkEventType.MESSAGE_NEW:
+            if this_event.to_me:
+                message_text = this_event.text.lower()
+                params.append(message_text)
+                return message_text
+
+
 
 for event in longpoll.listen():
+    params_ = []
+    id_users = []
+
+
     if event.type == VkEventType.MESSAGE_NEW:
 
         if event.to_me:
             request = event.text.lower()
             user_id = event.user_id
 
-            if request == "привет":
-                write_msg(user_id, f"Хай, {user_id}")
-            elif request == "пока":
-                write_msg(user_id, "Пока((")
+            if request == "3":
+                write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
+                params_.append(msg())
 
-            elif request == "1":
-                gender = input("Введите пол 1 - ж, 2- м: ")
-                city = input("Введиет город: ")
-                age_from = input("Введите возраст от: ")
-                age_to = input("Введите возраст до: ")
-                serch_users = serch_users(gender, city, age_from, age_to)
-                for i in serch_users:
-                    write_msg(user_id, f"{i}\n")
+            if len(params_) == 1:
+                write_msg(user_id, "Введиет город: ")
+                params_.append(msg())
+                write_msg(user_id, "Введите возраст от: ")
+
+            if 18 >= int(request) <= 40:
+                params_.append(msg())
+                write_msg(user_id, "Введите возраст до: ")
+
+            if int(params_[2]) >= int(request) <= 40:
+                params_.append(msg())
 
             else:
-                write_msg(user_id, "Не поняла вашего ответа...")
+                write_msg(user_id, f"Ошибка! Введите корректные данные!")
+
+            serch_users = serch_users(params_[0], params_[1], params_[2], params_[3])  # Получаем параметры для поиска людей
+
+
+            for i in serch_users:
+                # write_msg(user_id, f"{i[0]} {i[1]} {i[2]}\n")
+                id_users.append(f'{i[3]}')
+
+            for i in id_users:
+
+                photo = serch_photo(i)
+                sort_ = sort_likes(photo)
+
+                for i in sort_:
+                    print(i)
+
+
+
