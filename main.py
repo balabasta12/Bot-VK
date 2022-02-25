@@ -2,6 +2,7 @@ from random import randrange
 import Tokken
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.exceptions import ApiError
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 
@@ -25,8 +26,7 @@ def serch_users(sex, city, age_from, age_to):
     url_vk_id = 'https://vk.com/id'
     vk_user = vk_api.VkApi(token=token_user)
     serch_parameters = vk_user.method('users.search',  # Параметры поиска
-                                      {
-                                          'sort': 0
+                                      {     'sort': 0
                                           , 'hometown': city
                                           , 'sex': sex
                                           , 'age_from': age_from
@@ -34,7 +34,6 @@ def serch_users(sex, city, age_from, age_to):
                                           , 'status': 6
                                           , 'count': 5
                                           , 'has_photo': 1
-
                                       })
 
     for element in serch_parameters['items']:
@@ -51,13 +50,13 @@ def serch_users(sex, city, age_from, age_to):
 
 # Поиск фото
 def serch_photo(user_id):
-    list_photo = []
     vk_user = vk_api.VkApi(token=token_user)
 
     try:
-        serch_photo = vk_user.method('photos.get',
+        resp = vk_user.method('photos.get',
                                      {
                                          'access_token': vk_user
+                                         , 'v': token
                                          , 'owner_id': user_id
                                          , 'album_id': 'profile'
                                          , 'count': 5
@@ -66,23 +65,25 @@ def serch_photo(user_id):
 
 
                                      })
-    except:  # На какую ошибку указывать?
+    except ApiError:  # На какую ошибку указывать?
         return 'Нет доступа к фото'
+
+    serch_photo = []
 
     for i in range(5):
         try:
-            list_photo.append(
-                [serch_photo['items'][i]['likes']['count'],
-                 'photo' + str(serch_photo['items'][i]['owner_id']) + '_' + str(serch_photo['items'][i]['id'])])
+            serch_photo.append(
+                [resp['items'][i]['likes']['count'],
+                 'photo' + str(resp['items'][i]['owner_id']) + '_' + str(resp['items'][i]['id'])])
         except IndexError:
-            list_photo.append(['Нет фото'])
-    return list_photo
+            serch_photo.append(['Нет фото'])
+    return serch_photo
 
 
 def sort_likes(user_photos):
     photo = []
     for element in user_photos:
-        if element != 'Нет фото' and user_photos != 'Нет доступа к фото':
+        if str(element) != 'Нет фото' and str(user_photos) != 'Нет доступа к фото':
             photo.append(element)
     return sorted(photo)
 
@@ -102,10 +103,10 @@ def msg():
                 return message_text
 
 
-
 for event in longpoll.listen():
     params_ = []
     id_users = []
+    sort_ = []
 
 
     if event.type == VkEventType.MESSAGE_NEW:
@@ -114,7 +115,7 @@ for event in longpoll.listen():
             request = event.text.lower()
             user_id = event.user_id
 
-            if request == "3":
+            if str(request) == "3":
                 write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
                 params_.append(msg())
 
@@ -124,11 +125,11 @@ for event in longpoll.listen():
                 write_msg(user_id, "Введите возраст от: ")
 
             if 18 >= int(request) <= 40:
-                params_.append(msg())
+                params_.append(int(msg()))
                 write_msg(user_id, "Введите возраст до: ")
 
             if int(params_[2]) >= int(request) <= 40:
-                params_.append(msg())
+                params_.append(int(msg()))
 
             else:
                 write_msg(user_id, f"Ошибка! Введите корректные данные!")
@@ -138,15 +139,21 @@ for event in longpoll.listen():
 
             for i in serch_users:
                 # write_msg(user_id, f"{i[0]} {i[1]} {i[2]}\n")
-                id_users.append(f'{i[3]}')
+                id_users.append(f"{i[3]}")
 
-            for i in id_users:
 
-                photo = serch_photo(i)
-                sort_ = sort_likes(photo)
 
-                for i in sort_:
-                    print(i)
+            for photo in id_users:
+                photo_ = serch_photo(photo)
+                a = {photo: photo_}
+                for values in a.values():
+                    # b = sort_likes(values)
+                    for i in values:
+                        b = sort_likes(i)
+
+
+
+
 
 
 
