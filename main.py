@@ -151,7 +151,8 @@ for event in longpoll.listen():
                 sort_like = sort_likes(serch_photo(id_user))
                 for sort_l in sort_like:
                     for photo in sort_l.values():
-                        write_msg(user_id, f"{[i[0] for i in serch_users]}", attachment=photo)
+                        write_msg(user_id, f"Фото:", attachment=photo) # Как добавить мена к фото?
+
 
 
 
