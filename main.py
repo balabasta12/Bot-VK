@@ -89,68 +89,69 @@ def msg():
                 return message_text
 
 
+while True:
 
-for event in longpoll.listen():
-    params_ = []
-    id_user = []
-    name_ = []
-    photo_pep = []
-    params_photo = {}
-    pohoto_top = []
+    for event in longpoll.listen():
+        params_ = []
+        id_user = []
+        name_ = []
+        photo_pep = []
+        params_photo = {}
+        pohoto_top = []
 
-    if event.type == VkEventType.MESSAGE_NEW:
+        if event.type == VkEventType.MESSAGE_NEW:
 
-        if event.to_me:
-            request = event.text.lower()
-            user_id = event.user_id
-            if str(request) == "3":  # Активация бота
-                write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
-                params_.append(msg())
-            else:
-                write_msg(user_id, f"Ошибка! Введите корректные данные!")
+            if event.to_me:
+                request = event.text.lower()
+                user_id = event.user_id
+                if str(request) == "3":  # Активация бота
+                    write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
+                    params_.append(msg())
+                else:
+                    write_msg(user_id, f"Ошибка! Введите корректные данные!")
 
-            if len(params_) == 1:
-                write_msg(user_id, "Введиет город: ")
-                params_.append(msg())
-                write_msg(user_id, "Введите возраст от: ")
-            else:
-                write_msg(user_id, f"Ошибка! Введите корректные данные!")
+                if len(params_) == 1:
+                    write_msg(user_id, "Введиет город: ")
+                    params_.append(msg())
+                    write_msg(user_id, "Введите возраст от: ")
+                else:
+                    write_msg(user_id, f"Ошибка! Введите корректные данные!")
 
-            if 18 >= int(request) <= 40:
-                params_.append(int(msg()))
-                write_msg(user_id, "Введите возраст до: ")
-            else:
-                write_msg(user_id, f"Ошибка! Введите корректные данные!")
+                if 18 >= int(request) <= 40:
+                    params_.append(int(msg()))
+                    write_msg(user_id, "Введите возраст до: ")
+                else:
+                    write_msg(user_id, f"Ошибка! Введите корректные данные!")
 
-            if int(params_[2]) >= int(request) <= 40:
-                params_.append(int(msg()))
+                if int(params_[2]) >= int(request) <= 40:
+                    params_.append(int(msg()))
 
-            else:
-                write_msg(user_id, f"Ошибка! Введите корректные данные!")
+                else:
+                    write_msg(user_id, f"Ошибка! Введите корректные данные!")
 
-            serch_users = serch_users(params_[0], params_[1], params_[2],
-                                      params_[3])  # Получаем параметры для поиска людей
+                serch_users = serch_users(params_[0], params_[1], params_[2],
+                                          params_[3])  # Получаем параметры для поиска людей
 
-            for i in serch_users:  # Получаем параметры людей
-                name_.append(f"{i[0]} {i[1]} {i[2]}")
-                id_user.append(f"{i[3]}")
+                for i in serch_users:  # Получаем параметры людей
+                    name_.append(f"{i[0]} {i[1]} {i[2]}")
+                    id_user.append(f"{i[3]}")
 
-            for id_user in id_user:  # Получем фотки и сортируем их
-                sort_like = sort_likes(serch_photo(id_user))
-                # print(sort_like)
-                for sort_l in sort_like:
-                    # print(sort_l)
-                    pohoto_top.append(sort_l[1])
-                    # print(pohoto_top)
-                    for photo in sort_l:
-                        photo_pep.append(photo)
+                for id_user in id_user:  # Получем фотки и сортируем их
+                    sort_like = sort_likes(serch_photo(id_user))
+                    # print(sort_like)
+                    for sort_l in sort_like:
+                        # print(sort_l)
+                        pohoto_top.append(sort_l[1])
+                        # print(pohoto_top)
+                        for photo in sort_l:
+                            photo_pep.append(photo)
 
-            for i in pohoto_top:
-                templ = r"\d+"
-                id_f = findall(templ, i)
-                params_photo = {"id": id_f[0], "owner_id": id_f[1]}
-                full_name = vk_user.method('users.get', {'user_ids': params_photo['id']})
-                for er in full_name:
-                    re_name = (er['first_name'] + " " + er['last_name'])
-                    write_msg(user_id, f"{re_name} https://vk.com/id{params_photo['id']}"
-                              , attachment=f"photo{params_photo['id']}_{params_photo['owner_id']}")
+                for i in pohoto_top:
+                    templ = r"\d+"
+                    id_f = findall(templ, i)
+                    params_photo = {"id": id_f[0], "owner_id": id_f[1]}
+                    full_name = vk_user.method('users.get', {'user_ids': params_photo['id']})
+                    for er in full_name:
+                        re_name = (er['first_name'] + " " + er['last_name'])
+                        write_msg(user_id, f"{re_name} https://vk.com/id{params_photo['id']}"
+                                  , attachment=f"photo{params_photo['id']}_{params_photo['owner_id']}")
