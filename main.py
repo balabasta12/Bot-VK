@@ -4,7 +4,6 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.exceptions import ApiError
 import Tokken
 from re import findall
-import operator
 
 V = Tokken.V
 token = Tokken.token
@@ -19,7 +18,7 @@ url_vk_id = 'https://vk.com/id'
 def serch_users(sex, city, age_from, age_to):
     list_of_peoples = []
     serch_parameters = vk_user.method('users.search',  # Параметры поиска
-                                      {     'sort': 0
+                                      {'sort': 0
                                           , 'hometown': city
                                           , 'sex': sex
                                           , 'age_from': age_from
@@ -28,7 +27,7 @@ def serch_users(sex, city, age_from, age_to):
                                           , 'count': 5
                                           , 'has_photo': 1
                                           , 'online': 1
-                                      })
+                                       })
     for element in serch_parameters['items']:
         people = [
             element['first_name']
@@ -42,68 +41,43 @@ def serch_users(sex, city, age_from, age_to):
 
 # Поиск фото
 def serch_photo(user_id):
-    #vk_user = vk_api.VkApi(token=token_user)
     serch_photo = []
-    serch_photo_1 = []
     try:
         resp = vk_user.method('photos.get',
-                                     {
-                                         'access_token': vk_user
-                                         , 'v': V
-                                         , 'owner_id': user_id
-                                         , 'album_id': 'profile'
-                                         , 'count': 100
-                                         , 'extended': 1
-                                         , 'photo_sizes': 1
-                                     })
+                              {
+                                  'access_token': vk_user
+                                  , 'v': V
+                                  , 'owner_id': user_id
+                                  , 'album_id': 'profile'
+                                  , 'count': 100
+                                  , 'extended': 1
+                                  , 'photo_sizes': 1
+                              })
     except ApiError:
         return 'нет доступа к фото'
 
     for i in range(100):
         try:
             serch_photo.append(
-                {resp['items'][i]['likes']['count']:
-                 'photo' + str(resp['items'][i]['owner_id']) + '_' + str(resp['items'][i]['id'])})
+                (resp['items'][i]['likes']['count'],
+                 'photo' + str(resp['items'][i]['owner_id']) + '_' + str(resp['items'][i]['id'])))
         except IndexError:
-            serch_photo_1.append(['нет фото'])
+            serch_photo.append(['нет фото'])
     return serch_photo
 
-#
-# def sort_likes(photos):
-#     result = []
-#     res = []
-#     for element in photos:
-#         if element != ['нет фото'] and photos != 'нет доступа к фото':
-#             result.append(element)
-#     for i in result:
-#         sorted_tuple = sorted(i.items(), key=lambda x: x[0])
-#         res.append(dict(sorted_tuple))
-#     print(res)
-#     return res
-# def sort_likes(photos):
-#     result = []
-#     for el in photos:
-#         if el != ['нет фото']:
-#             result.append(el)
-#         elif photos != 'нет досткпа к фото':
-#             result.append(el)
-#     for i in result:
-#         print(sorted(i.(), reverse=True))
 
 def sort_likes(photos):
     result = []
     for element in photos:
-        if photos != 'нет доступа к фото':
+        if element != ['нет фото'] and photos != 'нет доступа к фото':
             result.append(element)
-    sorted_tuple = sorted(result, key=lambda x: x.keys())
-
-    print(sorted_tuple)
-
+    return sorted(result, key=lambda x: (x[0], x[1]), reverse=True)[: 3]
 
 
 def write_msg(user_id, message, attachment=None):
-    vk.method('messages.send', {'user_id': user_id, 'message': message,'attachment': attachment
-                                ,'random_id': randrange(10 ** 7)})  # 'keyboard': keyboard.get_keyboard()
+    vk.method('messages.send', {'user_id': user_id, 'message': message, 'attachment': attachment
+        , 'random_id': randrange(10 ** 7)})  # 'keyboard': keyboard.get_keyboard()
+
 
 def msg():
     params = []
@@ -115,22 +89,21 @@ def msg():
                 return message_text
 
 
+
 for event in longpoll.listen():
     params_ = []
     id_user = []
-    #sort_ = []
     name_ = []
     photo_pep = []
-    #user_id = None
     params_photo = {}
+    pohoto_top = []
 
     if event.type == VkEventType.MESSAGE_NEW:
 
         if event.to_me:
             request = event.text.lower()
             user_id = event.user_id
-
-            if str(request) == "3":
+            if str(request) == "3":  # Активация бота
                 write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
                 params_.append(msg())
             else:
@@ -155,31 +128,29 @@ for event in longpoll.listen():
             else:
                 write_msg(user_id, f"Ошибка! Введите корректные данные!")
 
-            serch_users = serch_users(params_[0], params_[1], params_[2], params_[3])  # Получаем параметры для поиска людей
+            serch_users = serch_users(params_[0], params_[1], params_[2],
+                                      params_[3])  # Получаем параметры для поиска людей
 
-            for i in serch_users:  #Получаем параметры людей
+            for i in serch_users:  # Получаем параметры людей
                 name_.append(f"{i[0]} {i[1]} {i[2]}")
                 id_user.append(f"{i[3]}")
 
             for id_user in id_user:  # Получем фотки и сортируем их
                 sort_like = sort_likes(serch_photo(id_user))
+                # print(sort_like)
                 for sort_l in sort_like:
-                    for photo in sort_l.values():
+                    # print(sort_l)
+                    pohoto_top.append(sort_l[1])
+                    # print(pohoto_top)
+                    for photo in sort_l:
                         photo_pep.append(photo)
 
-
-            for i in photo_pep:
+            for i in pohoto_top:
                 templ = r"\d+"
                 id_f = findall(templ, i)
                 params_photo = {"id": id_f[0], "owner_id": id_f[1]}
                 full_name = vk_user.method('users.get', {'user_ids': params_photo['id']})
                 for er in full_name:
                     re_name = (er['first_name'] + " " + er['last_name'])
-                    write_msg(user_id, f"{re_name} https://vk.com/id{params_photo['id']}", attachment=f"photo{params_photo['id']}_{params_photo['owner_id']}")
-
-
-
-
-
-
-
+                    write_msg(user_id, f"{re_name} https://vk.com/id{params_photo['id']}"
+                              , attachment=f"photo{params_photo['id']}_{params_photo['owner_id']}")
