@@ -98,12 +98,14 @@ while True:
         photo_pep = []
         params_photo = {}
         pohoto_top = []
+        serch_user = []
 
         if event.type == VkEventType.MESSAGE_NEW:
 
             if event.to_me:
                 request = event.text.lower()
                 user_id = event.user_id
+
                 if str(request) == "3":  # Активация бота
                     write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
                     params_.append(msg())
@@ -129,12 +131,12 @@ while True:
                 else:
                     write_msg(user_id, f"Ошибка! Введите корректные данные!")
 
-                serch_users = serch_users(params_[0], params_[1], params_[2],
-                                          params_[3])  # Получаем параметры для поиска людей
-
-                for i in serch_users:  # Получаем параметры людей
-                    name_.append(f"{i[0]} {i[1]} {i[2]}")
-                    id_user.append(f"{i[3]}")
+                serch_user.append(serch_users(params_[0], params_[1], params_[2],
+                                              params_[3]))  # Получаем параметры для поиска людей
+                for i in serch_user:  # Получаем параметры людей
+                    for user in i:
+                        # name_.append(f"{user[0]} {user[1]} {user[2]}")
+                        id_user.append(f"{user[3]}")
 
                 for id_user in id_user:  # Получем фотки и сортируем их
                     sort_like = sort_likes(serch_photo(id_user))
@@ -146,7 +148,7 @@ while True:
                         for photo in sort_l:
                             photo_pep.append(photo)
 
-                for i in pohoto_top:
+                for i in pohoto_top:  # Выводим фото с параметрами
                     templ = r"\d+"
                     id_f = findall(templ, i)
                     params_photo = {"id": id_f[0], "owner_id": id_f[1]}
