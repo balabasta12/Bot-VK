@@ -1,9 +1,8 @@
 import vk_api
-from random import randrange
-from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.longpoll import VkLongPoll
 from vk_api.exceptions import ApiError
 import Tokken
-from re import findall
+
 
 V = Tokken.V
 token = Tokken.token
@@ -85,22 +84,9 @@ class serch_photo:
         return sorted(self.result, key=lambda x: (x[0], x[1]), reverse=True)[: 3]
 
 
-def write_msg(user_id, message, attachment=None):
-    vk.method('messages.send', {'user_id': user_id, 'message': message, 'attachment': attachment
-        ,'random_id': randrange(10 ** 7)})
-
-
-def msg():
-    params = []
-    for this_event in longpoll.listen():
-        if this_event.type == VkEventType.MESSAGE_NEW:
-            if this_event.to_me:
-                message_text = this_event.text.lower()
-                params.append(message_text)
-                return message_text
-
 class getting_param:
-    def __init__(self):
+    def __init__(self, params):
+        self.serch_user_1 = params
         self.name = str()
         self.surname = str()
         self.vk_httml = str()
@@ -108,72 +94,15 @@ class getting_param:
         self.params_user = []
 
     def msg_1(self):
-        params_ = []
-        serch_user_1 = []
-
-        for event in longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW:
-                if event.to_me:
-                    request = event.text.lower()
-                    user_id = event.user_id
-
-                    if str(request) == "3":  # Активация бота
-                        write_msg(user_id, "Введите пол 1 - ж, 2- м: ")
-                        params_.append(msg())
-                    else:
-                        write_msg(user_id , f"Ошибка! Введите корректные данные!")
-
-                    if len(params_) == 1:
-                        write_msg(user_id , "Введиет город: ")
-                        params_.append(msg())
-                        write_msg(user_id , "Введите возраст от: ")
-                    else:
-                        write_msg(user_id , f"Ошибка! Введите корректные данные!")
-
-                    if 18 >= int(request) <= 40:
-                        params_.append(int(msg()))
-                        write_msg(user_id , "Введите возраст до: ")
-                    else:
-                        write_msg(user_id , f"Ошибка! Введите корректные данные!")
-
-                    if int(params_[2]) >= int(request) <= 40:
-                        params_.append(int(msg()))
-                    else:
-                        write_msg(user_id , f"Ошибка! Введите корректные данные!")
-
-                    users = serch_users(params_[0], params_[1], params_[2],
-                                                  params_[3])
-
-                    serch_user_1.append(users.user())
-
-                    for i in serch_user_1:
-                        for t in i:
-                            self.name = t[0]
-                            self.surname = t[1]
-                            self.vk_httml = t[2]
-                            self.vk_id_user = t[3]
-                            self.vk_id_users.append(self. vk_id_user)
-                            self.params_user.append({self.vk_id_user: [self.name, self.surname, self.vk_httml]})
-                        return self.params_user
+        for i in self.serch_user_1:
+            for t in i:
+                self.name = t[0]
+                self.surname = t[1]
+                self.vk_httml = t[2]
+                self.vk_id_user = t[3]
+                self.vk_id_users.append(self. vk_id_user)
+                self.params_user.append({self.vk_id_user: [self.name, self.surname, self.vk_httml]})
+            return self.params_user
 
 
-def get_photo_in_msg():
-    users_id = getting_param().msg_1()
-    params = []
-
-    for i in users_id:
-        for k, v in i.items():
-            ser_ph = serch_photo(k)
-            p = ser_ph.serch_and_sorted()
-            if p != 'нет доступа к фото':
-                for photo in p:
-                    params.append({photo[1]: v})
-
-    for i in params:
-        for k, v in i.items():
-            write_msg('как вот тут получить id ?',' f"{v[0]} {v[1]} {v[2]}"
-                       , attachment=k)
-
-while True:
-    get_photo_in_msg()
 
